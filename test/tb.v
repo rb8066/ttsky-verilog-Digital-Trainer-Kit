@@ -8,7 +8,7 @@ module tb;
     wire y;
 
     // Instantiate design
-    digital_logic_trainer uut (
+    tt_um_digital_logic_trainer user_project (
         .a(a), .b(b), .sel(sel), .y(y)
     );
 
