@@ -3,6 +3,8 @@
 
 
 
+
+
 module tb ();
 
     // Testbench signals
@@ -13,6 +15,7 @@ module tb ();
     wire [7:0] uio_oe;
     reg        clk;
     reg        rst_n;
+    reg        ena;
 
     // DUT instance
     tt_um_remya_digital_trainer user_project (
@@ -21,22 +24,24 @@ module tb ();
         .uio_in(uio_in),
         .uio_out(uio_out),
         .uio_oe(uio_oe),
+        .ena(ena),
         .clk(clk),
         .rst_n(rst_n)
     );
 
-    // Clock not used, but define it to avoid X states
+    // Clock generator (not really used, but defined)
     initial clk = 0;
     always #5 clk = ~clk;
 
-    // Reset not used, hold high
+    // Reset held high (not used in logic)
     initial rst_n = 1;
 
-    // Drive inputs and monitor outputs
+    // Test procedure
     initial begin
         $display("Starting testbench...");
         uio_in = 8'b0;
         ui_in  = 8'b0;
+        ena    = 1; // enable design
 
         // Iterate over all select values
         for (integer s = 0; s < 7; s = s + 1) begin
@@ -46,10 +51,18 @@ module tb ();
                     ui_in[1] = bb;        // b
                     ui_in[4:2] = s[2:0];  // sel
                     #10;
-                    $display("sel=%03b a=%b b=%b => y=%b", ui_in[4:2], ui_in[0], ui_in[1], uo_out[0]);
+                    $display("ena=%b sel=%03b a=%b b=%b => y=%b", 
+                              ena, ui_in[4:2], ui_in[0], ui_in[1], uo_out[0]);
                 end
             end
         end
+
+        // Test disable (ena=0) → output should be 0
+        ena = 0;
+        ui_in[0] = 1; ui_in[1] = 1; ui_in[4:2] = 3'b000; // AND
+        #10;
+        $display("ena=%b sel=%03b a=%b b=%b => y=%b (should be 0)", 
+                  ena, ui_in[4:2], ui_in[0], ui_in[1], uo_out[0]);
 
         $display("Testbench finished.");
         $finish;
