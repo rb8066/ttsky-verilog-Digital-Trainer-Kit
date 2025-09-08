@@ -6,7 +6,7 @@
 `default_nettype none
 
 // Digital Logic Trainer Kit with Gate Selection
-module digital_logic_trainer (
+module tt_um_digital_logic_trainer (
     input  wire a, b,            // Two input switches
     input  wire [2:0] sel,       // 3-bit selection for gate choice
     output reg  y                // Selected gate output
