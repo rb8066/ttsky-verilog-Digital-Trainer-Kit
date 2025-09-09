@@ -10,13 +10,13 @@
 
 module tt_um_remya_digital_trainer (
     input  wire [7:0] ui_in,    // inputs
-    output wire [7:0] uo_out,   // outputs
+    output reg  [7:0] uo_out,   // outputs (changed to reg so reset works)
     input  wire [7:0] uio_in,   // bidirectional (unused here)
     output wire [7:0] uio_out,
     output wire [7:0] uio_oe,
     input  wire       ena,      // enable signal from TinyTapeout
-    input  wire       clk,      // global clock (unused here)
-    input  wire       rst_n     // global reset (unused here)
+    input  wire       clk,      // global clock
+    input  wire       rst_n     // global reset (active low)
 );
 
     // Map TinyTapeout IOs to internal signals
@@ -24,10 +24,6 @@ module tt_um_remya_digital_trainer (
     wire b        = ui_in[1];
     wire [2:0] sel = ui_in[4:2];
     reg  y;
-
-    // Assign outputs
-    assign uo_out[0] = ena ? y : 1'b0;  // only drive when ena=1
-    assign uo_out[7:1] = 7'b0;          // unused outputs tied low
 
     // Unused bidirectional pins must be disabled
     assign uio_out = 8'b0;
@@ -45,6 +41,18 @@ module tt_um_remya_digital_trainer (
             3'b110: y = ~(a ^ b);     // XNOR
             default: y = 1'b0;        // default safe
         endcase
+    end
+
+    // Sequential block to handle reset and ena properly
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            uo_out <= 8'b0;  // clear outputs on reset
+        end else if (ena) begin
+            uo_out[0] <= y; // drive logic output
+            uo_out[7:1] <= 7'b0;
+        end else begin
+            uo_out <= 8'b0; // disabled → outputs low
+        end
     end
 
 endmodule
